@@ -1,0 +1,46 @@
+# .github/workflows/pages-public.yml
+#
+# VIVE EN EL REPO PUBLICO (espejo). Sirve por GitHub Pages lo que el workflow
+# release-public.yml deja en la rama gh-pages. El repo publico solo contiene el
+# artefacto protegido (ofuscado/cifrado) — nunca el fuente original.
+#
+# Alternativa "force_orphan": si en release-public.yml usas force_orphan:true,
+# la rama gh-pages no guarda historial, asi que ni siquiera queda rastro de
+# versiones anteriores del artefacto.
+
+name: pages-public
+
+on:
+  push:
+    branches: [gh-pages]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
